@@ -22,12 +22,13 @@ async function getCupcakes() {
   return response.data
 }
 
+//send post request to create new cupcake data
 async function createCupcakes() {
   const dataObj = {'flavor':$('#flavor').val(),'size':$('#size').val(),'rating':$('#rating').val(),'image':$('#image').val()}
   const response = await axios({
     url: '/api/cupcakes',
     method: "POST",
-    params: {'json':dataObj}
+    data: dataObj
   })
   console.log(response)
   return response.data
@@ -41,11 +42,11 @@ async function submitEventHandler(e) {
   await showCupcakes()
 }
 
-//show cupcakes on dom load
-$(showCupcakes)
+
 
 //update html list when new cupcake is added through form
 $cupcakeForm.on('submit',submitEventHandler)
+
 
 showCupcakes()
 
