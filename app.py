@@ -29,12 +29,11 @@ def get_cupcake(cupcake_id):
 @app.route('/api/cupcakes', methods=["POST"])
 def add_cupcake():
     """create new cupcake row"""
-    id = request.json['id']
     flavor = request.json['flavor']
     size = request.json['size']
     rating = request.json['rating']
     image = request.json['image']
-    new_cupcake = Cupcake(id=id,flavor=flavor,size=size,rating=rating,image=image)
+    new_cupcake = Cupcake(flavor=flavor,size=size,rating=rating,image=image)
     return jsonify(cupcake=serialize_obj(new_cupcake))
 
         
