@@ -10,8 +10,7 @@ app.config['SQLALCHEMY_ECHO'] = False
 # Make Flask errors be real errors, rather than HTML pages with error info
 app.config['TESTING'] = True
 
-db.drop_all()
-db.create_all()
+
 
 
 CUPCAKE_DATA = {
@@ -28,15 +27,27 @@ CUPCAKE_DATA_2 = {
     "image": "http://test.com/cupcake2.jpg"
 }
 
+CUPCAKE_DATA_3 = {
+    "flavor": "TestFlavor3",
+}
+
 
 class CupcakeViewsTestCase(TestCase):
     """Tests for views of API."""
 
+    @classmethod
+    def setUpClass(cls):
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
     def setUp(self):
         """Make demo data."""
+        self.app_context = app.app_context() 
+        self.app_context.push()
 
         Cupcake.query.delete()
-
+        
         cupcake = Cupcake(**CUPCAKE_DATA)
         db.session.add(cupcake)
         db.session.commit()
@@ -45,8 +56,8 @@ class CupcakeViewsTestCase(TestCase):
 
     def tearDown(self):
         """Clean up fouled transactions."""
-
         db.session.rollback()
+        self.app_context.pop()
 
     def test_list_cupcakes(self):
         with app.test_client() as client:
@@ -107,3 +118,36 @@ class CupcakeViewsTestCase(TestCase):
             })
 
             self.assertEqual(Cupcake.query.count(), 2)
+
+    def test_update_cupcake(self):
+        with app.test_client() as client:
+            url = f"/api/cupcakes/{self.cupcake.id}"
+            resp = client.patch(url, json=CUPCAKE_DATA_3)
+
+            self.assertEqual(resp.status_code, 200)
+
+            data = resp.json
+
+            self.assertIsInstance(data['cupcake']['id'], int)
+            del data['cupcake']['id']
+
+            self.assertEqual(data, {
+                "cupcake": {
+                    "flavor": "TestFlavor3",
+                    "size": "TestSize",
+                    "rating": 5,
+                    "image": "http://test.com/cupcake.jpg"
+                }
+            })
+
+    def test_delete_cupcake(self):
+        with app.test_client() as client:
+            url = f"/api/cupcakes/{self.cupcake.id}"
+            resp = client.delete(url)
+
+            self.assertEqual(resp.status_code, 200)
+
+            data = resp.json
+
+            self.assertIn('deleted',data['message'])
+            
