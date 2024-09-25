@@ -8,6 +8,9 @@ def connect_db(app):
     db.app = app
     db.init_app(app)
 
+def serialize_obj(obj):
+    return {key : val for key, val in obj.items()}
+
 class Cupcake(db.Model):
     __tablename__ = 'cupcakes'
 
